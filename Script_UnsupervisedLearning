@@ -1,0 +1,573 @@
+#We used the survey results to be able to group people into certain groups based on their answers. We went through the process in the following way:
+
+#Required packages are imported, the data is loaded as DataFrame: survey_df and the print options for pandas are being set.
+#Checked for missing values and renamed the column names.
+
+########################################
+# importing packages
+########################################
+import pandas            as pd  # data science essentials
+import matplotlib.pyplot as plt                  # fundamental data visualization
+import seaborn           as sns                  # enhanced visualization
+from sklearn.preprocessing import StandardScaler # standard scaler
+from sklearn.decomposition import PCA            # PCA
+from scipy.cluster.hierarchy import dendrogram, linkage # dendrograms
+from sklearn.cluster         import KMeans              # k-means clustering
+#import warnings
+#warnings.filterwarnings("ignore")
+########################################
+# loading data and setting display options
+########################################
+# loading data
+survey_df = pd.read_excel('Survey_Data_Final_Exam.xlsx')
+
+
+# setting print options
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+pd.set_option('display.max_colwidth', 100)
+
+#Defined functions
+########################################
+# inertia
+########################################
+def interia_plot(data, max_clust = 50):
+    """
+PARAMETERS
+----------
+data      : DataFrame, data from which to build clusters. Dataset should be scaled
+max_clust : int, maximum of range for how many clusters to check interia, default 50
+    """
+
+    ks = range(1, max_clust)
+    inertias = []
+
+
+    for k in ks:
+        # INSTANTIATING a kmeans object
+        model = KMeans(n_clusters = k)
+
+
+        # FITTING to the data
+        model.fit(data)
+
+
+        # append each inertia to the list of inertias
+        inertias.append(model.inertia_)
+
+
+
+    # plotting ks vs inertias
+    fig, ax = plt.subplots(figsize = (12, 8))
+    plt.plot(ks, inertias, '-o')
+
+
+    # labeling and displaying the plot
+    plt.xlabel('number of clusters, k')
+    plt.ylabel('inertia')
+    plt.xticks(ks)
+    plt.show()
+
+########################################
+# scree_plot
+########################################
+def scree_plot(pca_object, export = False):
+    # building a scree plot
+
+    # setting plot size
+    fig, ax = plt.subplots(figsize=(10, 8))
+    features = range(pca_object.n_components_)
+
+
+    # developing a scree plot
+    plt.plot(features,
+             pca_object.explained_variance_ratio_,
+             linewidth = 2,
+             marker = 'o',
+             markersize = 10,
+             markeredgecolor = 'black',
+             markerfacecolor = 'grey')
+
+
+    # setting more plot options
+    plt.title('Scree Plot')
+    plt.xlabel('PCA feature')
+    plt.ylabel('Explained Variance')
+    plt.xticks(features)
+
+    if export == True:
+    
+        # exporting the plot
+        plt.savefig('top_customers_correlation_scree_plot.png')
+        
+    # displaying the plot
+    plt.show()
+    
+#Investigating data of the survey DataFrame
+
+#The following methods were used for analysis; .info(), .describe(), .head(5).
+
+#CODE CAN BE REPLACED AFTERWARDS WITH MARKDOWN INSIGHTS FROM CODE
+
+#Gathering info
+survey_df.info()
+
+#Describing the DataFrame
+survey_df.describe()
+
+#Checking out the first five rows of the DataFrame
+survey_df.head(5)
+
+##Old name - New name##
+
+#https://www.verywellmind.com/the-big-five-personality-dimensions-2795422
+
+#5 personality traits:
+
+#1 Openness
+
+#2 Conscientiousness
+
+#3 Extraversion
+
+#4 Agreableness
+
+#5 Neuroticism
+
+#HULT DNA personality traits:
+
+#THINKING Shows Self-Awareness Embraces Change Demonstartes Dynamic Thinking
+
+#COMMUNICATING Speaks & Listens Skillfully Influences Confidently Presents Ideas Effectively
+
+#TEAM BUILDING Fosters Collaborative Relationships Inspires Productively Resolves Conflict COnstructively
+
+#The old column ID's have been replaced with new ones.
+
+#surveyID -ID
+
+#Am the life of the party -Party animal
+
+#Feel little concern for others -Unsympathetic
+
+#Am always prepared -Prepper
+
+#Get stressed out easily -Stress bunny
+
+#Have a rich vocabulary -Walking thesaurus
+
+#Don't talk a lot -Quiet type
+
+#Am interested in people -Openminded socialist
+
+#Leave my belongings around -Forgetful and carefree
+
+#Am relaxed most of the time -Chill person
+
+#Have difficulty understanding abstract ideas -Simpleton
+
+#Feel comfortable around people -Social animal
+
+#Insult people -Foul mouth
+
+#Pay attention to details -Punctilious
+
+#Worry about things -Worrying type
+
+#Have a vivid imagination -Imaginist
+
+#Keep in the background -Solitary mouse
+
+#Sympathize with others' feelings -Empathetic
+
+#Make a mess of things -Mess maker
+
+#Seldom feel blue -Sad person
+
+#Am not interested in abstract ideas -Abstractually shy
+
+#Start conversations -Conversationalist
+
+#Am not interested in other people's problems -Solitary person
+
+#Get chores done right away -Work horse
+
+#Am easily disturbed -Irritable
+
+#Have excellent ideas -Idea maker
+
+#Have little to say -Silent mouse
+
+#Have a soft heart -Softy
+
+#Often forget to put things back in their proper place -Absynthe minded
+
+#Get upset easily -Easily triggered
+
+#Do not have a good imagination -Unimaginative
+
+#Talk to a lot of different people at parties -Smooth talker
+
+#Am not really interested in others -Uncaring
+
+#Like order -Neat freak
+
+#Change my mood a lot -Mood swinger
+
+#Am quick to understand things -Quick learner
+
+#Don't like to draw attention to myself -Inconspicuous type
+Take time out for others -Pal Around
+
+#Shirk my duties -lazy type
+
+#Have frequent mood swings -Moody type
+
+#Use difficult words -well-versed
+
+#Don't mind being the center of attention -Attention seeker
+
+#Feel others' emotions -Emotionaly aware
+
+#Follow a schedule -Planner
+
+#Get irritated easily -Easily annoyed
+
+#Spend time reflecting on things -philosopher
+
+#Am quiet around strangers -Introvert
+
+#Make people feel at ease -Comfort bringer
+
+#Am exacting in my work -Perfectionist
+
+#Often feel blue -Sad person
+
+#Am full of ideas -Ideator
+
+#See underlying patterns in complex situations -Detective
+
+#Don't generate ideas that are new and different -Unorginial
+
+#Demonstrate an awareness of personal strengths and limitations -Self-aware
+
+#Display a growth mindset -Growth mindset
+
+#Respond effectively to multiple priorities -Multi tasker
+
+#Take initiative even when circumstances, objectives, or rules aren't clear -Proactivist
+
+#Encourage direct and open discussions -Facilitator
+
+#Respond effectively to multiple priorities.1 -Case handler
+
+#Take initiative even when circumstances, objectives, or rules aren't clear.1 -El Capitan
+
+#Encourage direct and open discussions.1 -Cheerleader
+
+#Listen carefully to others -listener
+
+#Don't persuasively sell a vision or idea -Unenthousiastic seller
+
+#Build cooperative relationships -Community builder
+
+#Work well with people from diverse cultural backgrounds -Hultian
+
+#Effectively negotiate interests, resources, and roles -Negotiator
+
+#Can't rally people on the team around a common goal -Zero followers
+
+#Translate ideas into plans that are organized and realistic -Realist
+
+#Resolve conflicts constructively -Peaceful resolutionist
+
+#Seek and use feedback from teammates -Carebear
+
+#Coach teammates for performance and growth -Coach
+
+#Drive for results -Ambition
+
+#What laptop do you currently have? -Current laptop
+
+#What laptop would you buy in next assuming if all laptops cost the same? -Future laptop
+
+#What program are you in? -Program
+
+#What is your age? -Age
+
+#Gender -Gender
+
+#What is your nationality? -Nationality
+
+#What is your ethnicity? -Ethnicity
+
+######################Data exploration
+
+#Analysis of variables
+
+#Null values
+
+#It was found through use of the isnull() method on our survey DataFrame, Ethnicity has one missing value.
+
+#Reliability research
+
+#Researching survey questions with similar meaning to check participant seriousness. A sample of a few similar sets of questions will suffice to give a raw estimate percentage of people that may not have taken the survey seriously.
+# value counts for related variables;
+
+#Question set 1
+#Openess towards social engagement and outgoingness
+print("Openess towards social engagement and outgoingness")
+print("\n\n")
+print("Party Animal")
+print(survey_df['Party Animal'].value_counts())
+print("\n\n")
+print("Solitary Mouse")
+print(survey_df['Solitary Mouse'].value_counts())
+print("\n\n")
+print("Uncaring")
+print(survey_df['Uncaring'].value_counts())
+
+
+#NOTE: Boxplots of these variables against our response variable (windows/Macbook) will be interesting to pinpoint relevance of certain interview questions for predicting whether or not our classmate are more likely to buy Mac or Windows.
+# Laptop types
+
+Windows_Laptop  = ['Windows Laptop']
+
+Macbook = ['Macbook']
+
+MAC = ['MAC']
+
+Chromebook = ['Chromebook']
+
+# placeholder list
+placeholder_lst = []
+
+
+# looping to group observations by computer type
+for Future_Laptop in survey_df['Future_Laptop']:
+        if 'Windows laptop' in Future_Laptop:
+            placeholder_lst.append('Windows Laptop')
+            
+        elif 'Macbook' in Future_Laptop:
+            placeholder_lst.append('Macbook')
+        
+        elif 'MAC' in Future_Laptop:
+            placeholder_lst.append('Macbook')
+            
+        elif 'Chromebook' in Future_Laptop:
+            placeholder_lst.append('Windows Laptop')
+            
+        else:
+            print("Something went wrong, unknown value in Future laptop")
+
+
+# concatenating with original DataFrame
+survey_df['Future_Laptop'] = pd.Series(placeholder_lst)
+
+# checking results
+survey_df['Future_Laptop'].value_counts()
+#Get dummies
+one_hot_laptop  = pd.get_dummies(survey_df['Future_Laptop'])
+# Concatenating the dummy variables into the dataset
+
+survey_df = pd.concat([survey_df, one_hot_laptop], axis = 1)
+
+#Dropping the Future_laptop column
+
+survey_df.drop(['Future_Laptop'], axis = 1, inplace = True)
+
+survey_df.head()
+
+# dropping demographic information
+purchase_behavior = survey_df.drop(['Current Laptop', 'Program', 'Age','Gender','Nationality','Ethnicity','ID','Macbook','Windows Laptop'],
+                                      axis = 1)
+
+
+# INSTANTIATING a StandardScaler() object
+scaler = StandardScaler()
+
+
+# FITTING the scaler with the data
+scaler.fit(purchase_behavior)
+
+
+# TRANSFORMING our data after fit
+X_scaled = scaler.transform(purchase_behavior)
+
+
+# converting scaled data into a DataFrame
+purchases_scaled = pd.DataFrame(X_scaled)
+
+
+# reattaching column names
+purchases_scaled.columns = purchase_behavior.columns
+
+
+# checking pre- and post-scaling variance
+print(pd.np.var(purchase_behavior), '\n\n')
+print(pd.np.var(purchases_scaled))
+
+# INSTANTIATING a PCA object with no limit to principal components
+pca = PCA(n_components = None,
+          random_state = 802)
+
+
+# FITTING and TRANSFORMING the purchases_scaled
+customer_pca = pca.fit_transform(purchases_scaled)
+
+
+# calling the scree_plot function
+scree_plot(pca_object = pca)
+
+# INSTANTIATING a new model using the first three principal components
+pca_5 = PCA(n_components = 5,
+            random_state = 802)
+
+
+# FITTING and TRANSFORMING the purchases_scaled
+customer_pca_5 = pca_5.fit_transform(purchases_scaled)
+
+##################
+###  PC Model ###
+##################
+# transposing pca components (pc = 5)
+factor_loadings_5 = pd.DataFrame(pd.np.transpose(pca_5.components_))
+
+
+# naming rows as original features
+factor_loadings_5 = factor_loadings_5.set_index(purchases_scaled.columns)
+
+
+# checking the results
+print(f"""
+5 Components Factor Loadings
+------------------------------
+{factor_loadings_5.round(2)}
+""")
+
+# naming each principal component
+factor_loadings_5.columns = ['Openness',
+                             'Conscientiousness',
+                             'Extraversion',
+                             'Agreeableness',
+                             'Neuroticism']
+
+
+# analyzing factor strengths per customer
+X_pca_reduced = pca_5.transform(purchases_scaled)
+
+
+# converting to a DataFrame
+X_pca_df = pd.DataFrame(X_pca_reduced)
+
+pd.np.var(X_pca_df)
+# INSTANTIATING a StandardScaler() object
+scaler = StandardScaler()
+
+
+# FITTING the scaler with the data
+scaler.fit(X_pca_df)
+
+
+# TRANSFORMING our data after fit
+X_scaled_pca = scaler.transform(X_pca_df)
+
+
+# converting scaled data into a DataFrame
+pca_scaled = pd.DataFrame(X_scaled_pca)
+
+
+# reattaching column names
+pca_scaled.columns = [       'Openness',
+                             'Conscientiouness',
+                             'Extraversion',
+                             'Agreeableness',
+                             'Neuroticism']
+
+
+# checking pre- and post-scaling variance
+print(pd.np.var(X_pca_df), '\n\n')
+print(pd.np.var(pca_scaled))
+
+# INSTANTIATING a k-Means object with five clusters
+customers_k_pca = KMeans(n_clusters = 2,
+                         random_state = 802)
+
+
+# fitting the object to the data
+customers_k_pca.fit(pca_scaled)
+
+
+# converting the clusters to a DataFrame
+customers_kmeans_pca = pd.DataFrame({'Cluster': customers_k_pca.labels_})
+
+
+# checking the results
+print(customers_kmeans_pca.iloc[: , 0].value_counts())
+
+# storing cluster centers
+centroids_pca = customers_k_pca.cluster_centers_
+
+
+# converting cluster centers into a DataFrame
+centroids_pca_df = pd.DataFrame(centroids_pca)
+
+
+# renaming principal components
+centroids_pca_df.columns = [ 'Openness',
+                             'Conscientiouness',
+                             'Extraversion',
+                             'Agreeableness',
+                             'Neuroticism']
+
+# checking results (clusters = rows, pc = columns)
+centroids_pca_df.round(2)
+
+# concatenating cluster memberships with principal components
+clst_pca_df = pd.concat([customers_kmeans_pca,
+                         X_pca_df],
+                         axis = 1)
+
+
+# checking results
+clst_pca_df
+
+
+# concatenating demographic information with pca-clusters
+final_pca_clust_df = pd.concat([survey_df.loc[ : , ['Current Laptop', 'Program', 'Age','Gender','Nationality','Ethnicity','ID','Macbook','Windows Laptop']],
+                                clst_pca_df],
+                                axis = 1)
+
+
+# renaming columns
+final_pca_clust_df.columns = ['Current Laptop',
+                              'Program',
+                              'Age',
+                              'Gender',
+                              'Nationality',
+                              'Ethnicity',
+                              'ID',
+                              'Macbook',
+                              'Windows Laptop',
+                              'Cluster',
+                              'Openness',
+                              'Conscientiouness',
+                              'Extraversion',
+                              'Agreeableness',
+                              'Neuroticism']
+
+# checking the results
+final_pca_clust_df.head(n = 5)
+
+if clst_pca_df['age'] <= 12:
+    age_group = 'young'
+elif (age >= 13) and (age <= 15):
+    age_group = 'teen'
+elif (age >= 16) and (age <= 54):
+    age_group = 'adult'
+elif age >= 55:
+    age_group = 'elder'
+else:
+    age_group = 'error'
+    
